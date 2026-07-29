@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digit Recognizer — NumPy NN</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --text: #f0f0f0;
+    --muted: #666;
+    --accent: #a3e635;
+    --accent-dim: rgba(163,230,53,0.12);
+    --danger: #f87171;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    width: 100%;
+    padding: 2rem 2rem 0;
+    text-align: center;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin-bottom: .5rem;
+  }
+
+  h1 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 600;
+    letter-spacing: -.02em;
+    line-height: 1.15;
+  }
+
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: .5rem;
+    font-weight: 400;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--accent-dim);
+    border: 1px solid rgba(163,230,53,.25);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    margin-top: 1rem;
+  }
+
+  .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    max-width: 860px;
+    padding: 2rem;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+
+  .panel-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+
+  /* Canvas */
+  .canvas-wrap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  #draw-canvas {
+    background: #000;
+    border-radius: 10px;
+    cursor: crosshair;
+    touch-action: none;
+    border: 2px solid var(--border);
+    transition: border-color .2s;
+    width: 100%;
+    max-width: 280px;
+    aspect-ratio: 1;
+  }
+
+  #draw-canvas:hover { border-color: var(--accent); }
+
+  .canvas-hint {
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+  }
+
+  .btn-row { display: flex; gap: 8px; width: 100%; max-width: 280px; }
+
+  button {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 500;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: all .15s;
+    flex: 1;
+  }
+
+  #btn-predict {
+    background: var(--accent);
+    color: #0f0f0f;
+  }
+  #btn-predict:hover { background: #bef264; transform: translateY(-1px); }
+  #btn-predict:active { transform: translateY(0); }
+  #btn-predict:disabled { background: #333; color: var(--muted); cursor: not-allowed; transform: none; }
+
+  #btn-clear {
+    background: var(--surface2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  #btn-clear:hover { background: #2e2e2e; }
+
+  /* Result panel */
+  .result-panel { display: flex; flex-direction: column; gap: 1.5rem; }
+
+  .prediction-display {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: var(--surface2);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border: 1px solid var(--border);
+  }
+
+  .big-digit {
+    font-family: var(--mono);
+    font-size: 4rem;
+    font-weight: 600;
+    color: var(--accent);
+    line-height: 1;
+    min-width: 60px;
+    text-align: center;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .big-digit.pop { animation: pop .3s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes pop { 0%{transform:scale(.7);opacity:.3} 100%{transform:scale(1);opacity:1} }
+
+  .conf-info { flex: 1; }
+  .conf-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+  .conf-value { font-family: var(--mono); font-size: 1.4rem; font-weight: 600; color: var(--text); }
+  .conf-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Bars */
+  .bars-title { font-size: 12px; color: var(--muted); margin-bottom: .75rem; }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 5px;
+  }
+
+  .bar-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    width: 14px;
+    text-align: right;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--border);
+    transition: width .4s cubic-bezier(.4,0,.2,1), background .3s;
+    width: 0%;
+  }
+
+  .bar-fill.top { background: var(--accent); }
+
+  .bar-pct {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    width: 34px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* Loading state */
+  #loading-msg {
+    display: none;
+    text-align: center;
+    padding: 2rem;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .spinner {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    margin: 0 auto 1rem;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #error-msg {
+    display: none;
+    background: rgba(248,113,113,.1);
+    border: 1px solid rgba(248,113,113,.3);
+    border-radius: 10px;
+    padding: 1rem;
+    font-size: 13px;
+    color: var(--danger);
+    text-align: center;
+    line-height: 1.6;
+  }
+
+  /* Preview */
+  .preview-row {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: .75rem 1rem;
+    border: 1px solid var(--border);
+  }
+
+  #preview-canvas {
+    border-radius: 4px;
+    image-rendering: pixelated;
+    border: 1px solid var(--border);
+  }
+
+  .preview-info { font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .preview-info strong { color: var(--text); font-weight: 500; }
+
+  footer {
+    padding: 1.5rem 2rem 2rem;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  footer a { color: var(--accent); text-decoration: none; }
+
+  @media (max-width: 600px) {
+    main { grid-template-columns: 1fr; padding: 1rem; gap: 1rem; }
+    header { padding: 1.5rem 1rem 0; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <p class="eyebrow">Neural network · pure numpy</p>
+  <h1>Draw a <span>digit</span>.<br>Watch it think.</h1>
+  <p class="subtitle">3-layer network trained from scratch · 96.69% accuracy on MNIST</p>
+  <div class="badge"><span class="dot"></span> No libraries — just matrix math</div>
+</header>
+
+<div id="loading-msg">
+  <div class="spinner"></div>
+  Loading weights…
+</div>
+
+<div id="error-msg">
+  Could not load <code>weights.json</code>.<br>
+  Make sure it's in the <strong>same folder</strong> as this HTML file,<br>
+  then open via a local server or use the instructions below.
+</div>
+
+<main id="main-ui" style="display:none">
+  <!-- Left: canvas -->
+  <div class="panel">
+    <p class="panel-label">Draw here</p>
+    <div class="canvas-wrap">
+      <canvas id="draw-canvas" width="280" height="280"></canvas>
+      <p class="canvas-hint">Draw a single digit with your mouse or finger</p>
+      <div class="btn-row">
+        <button id="btn-predict">Predict →</button>
+        <button id="btn-clear">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: results -->
+  <div class="panel result-panel">
+    <p class="panel-label">Prediction</p>
+
+    <div class="prediction-display">
+      <div class="big-digit" id="digit-display">—</div>
+      <div class="conf-info">
+        <div class="conf-label">Confidence</div>
+        <div class="conf-value" id="conf-display">—</div>
+        <div class="conf-sub" id="second-display"></div>
+      </div>
+    </div>
+
+    <div>
+      <p class="bars-title">All probabilities</p>
+      <div id="bars"></div>
+    </div>
+
+    <div class="preview-row">
+      <canvas id="preview-canvas" width="28" height="28" style="width:56px;height:56px"></canvas>
+      <div class="preview-info">
+        <strong>What the network sees</strong><br>
+        28×28 pixels, normalized 0–1<br>
+        Same preprocessing as MNIST training
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Built with NumPy · trained on 60,000 MNIST samples ·
+  <a href="https://github.com" target="_blank">view source</a>
+</footer>
+
+<script>
+// ── Matrix math (same ops as your NumPy code) ─────────────────────────────
+function matmul(A, B) {
+  // A: [m x n], B: [n x p] → [m x p]
+  const m = A.length, n = B.length, p = B[0].length;
+  const C = Array.from({length: m}, () => new Float64Array(p));
+  for (let i = 0; i < m; i++)
+    for (let k = 0; k < n; k++) {
+      const aik = A[i][k];
+      for (let j = 0; j < p; j++) C[i][j] += aik * B[k][j];
+    }
+  return C;
+}
+
+function addBias(Z, b) {
+  return Z.map(row => row.map((v, j) => v + b[0][j]));
+}
+
+function relu(Z) {
+  return Z.map(row => row.map(v => Math.max(0, v)));
+}
+
+function softmax(Z) {
+  return Z.map(row => {
+    const max = Math.max(...row);
+    const exps = row.map(v => Math.exp(v - max));
+    const sum = exps.reduce((a, b) => a + b, 0);
+    return exps.map(v => v / sum);
+  });
+}
+
+function forward(X, W) {
+  let z1 = addBias(matmul(X, W.w1), W.b1);
+  let a1 = relu(z1);
+  let z2 = addBias(matmul(a1, W.w2), W.b2);
+  let a2 = relu(z2);
+  let z3 = addBias(matmul(a2, W.w3), W.b3);
+  let a3 = softmax(z3);
+  return a3[0]; // return probs for single sample
+}
+
+// ── Load weights ──────────────────────────────────────────────────────────
+let W = null;
+
+async function loadWeights() {
+  document.getElementById('loading-msg').style.display = 'block';
+  try {
+    const res = await fetch('weights.json');
+    if (!res.ok) throw new Error('fetch failed');
+    W = await res.json();
+    document.getElementById('loading-msg').style.display = 'none';
+    document.getElementById('main-ui').style.display = 'grid';
+    initBars();
+  } catch(e) {
+    document.getElementById('loading-msg').style.display = 'none';
+    document.getElementById('error-msg').style.display = 'block';
+  }
+}
+
+// ── Canvas drawing ────────────────────────────────────────────────────────
+const canvas = document.getElementById('draw-canvas');
+const ctx = canvas.getContext('2d');
+let drawing = false;
+let hasDrawn = false;
+
+ctx.fillStyle = '#000';
+ctx.fillRect(0, 0, 280, 280);
+ctx.strokeStyle = '#fff';
+ctx.lineWidth = 18;
+ctx.lineCap = 'round';
+ctx.lineJoin = 'round';
+
+function getPos(e) {
+  const r = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / r.width;
+  const scaleY = canvas.height / r.height;
+  if (e.touches) {
+    return {
+      x: (e.touches[0].clientX - r.left) * scaleX,
+      y: (e.touches[0].clientY - r.top) * scaleY
+    };
+  }
+  return {
+    x: (e.clientX - r.left) * scaleX,
+    y: (e.clientY - r.top) * scaleY
+  };
+}
+
+canvas.addEventListener('mousedown', e => { drawing = true; hasDrawn = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); });
+canvas.addEventListener('mousemove', e => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
+canvas.addEventListener('mouseup', () => { drawing = false; if (hasDrawn) autoPre(); });
+canvas.addEventListener('mouseleave', () => { drawing = false; });
+
+canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; hasDrawn = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); }, {passive:false});
+canvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); }, {passive:false});
+canvas.addEventListener('touchend', () => { drawing = false; if (hasDrawn) autoPre(); });
+
+let autoTimer;
+function autoPre() {
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(predict, 400); // auto-predict 400ms after stopping
+}
+
+// ── Preprocess: 280x280 canvas → 28x28 normalized flat array ─────────────
+function preprocess() {
+  const small = document.getElementById('preview-canvas');
+  const sCtx = small.getContext('2d');
+  sCtx.drawImage(canvas, 0, 0, 28, 28);
+  const imgData = sCtx.getImageData(0, 0, 28, 28).data;
+  const pixels = [];
+  for (let i = 0; i < 784; i++) {
+    pixels.push(imgData[i * 4] / 255.0); // red channel (grayscale)
+  }
+  return [pixels]; // shape [1, 784]
+}
+
+// ── Predict ───────────────────────────────────────────────────────────────
+function predict() {
+  if (!W || !hasDrawn) return;
+  const X = preprocess();
+  const probs = forward(X, W);
+  displayResult(probs);
+}
+
+document.getElementById('btn-predict').addEventListener('click', predict);
+
+document.getElementById('btn-clear').addEventListener('click', () => {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, 280, 280);
+  hasDrawn = false;
+  clearTimeout(autoTimer);
+  resetDisplay();
+  // clear preview
+  const s = document.getElementById('preview-canvas');
+  s.getContext('2d').clearRect(0, 0, 28, 28);
+});
+
+// ── Display results ───────────────────────────────────────────────────────
+function initBars() {
+  const container = document.getElementById('bars');
+  container.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    container.innerHTML += `
+      <div class="bar-row">
+        <span class="bar-label">${i}</span>
+        <div class="bar-track"><div class="bar-fill" id="bar-${i}"></div></div>
+        <span class="bar-pct" id="pct-${i}">0%</span>
+      </div>`;
+  }
+}
+
+function displayResult(probs) {
+  const top = probs.indexOf(Math.max(...probs));
+  const sorted = [...probs].map((p,i) => [p,i]).sort((a,b) => b[0]-a[0]);
+  const second = sorted[1];
+
+  // Big digit
+  const digitEl = document.getElementById('digit-display');
+  digitEl.textContent = top;
+  digitEl.classList.remove('pop');
+  void digitEl.offsetWidth;
+  digitEl.classList.add('pop');
+
+  // Confidence
+  document.getElementById('conf-display').textContent = (probs[top]*100).toFixed(1) + '%';
+  document.getElementById('second-display').textContent = `Next: ${second[1]} at ${(second[0]*100).toFixed(1)}%`;
+
+  // Bars
+  for (let i = 0; i < 10; i++) {
+    const fill = document.getElementById('bar-' + i);
+    const pct = document.getElementById('pct-' + i);
+    fill.style.width = (probs[i] * 100).toFixed(1) + '%';
+    fill.classList.toggle('top', i === top);
+    pct.textContent = (probs[i] * 100).toFixed(1) + '%';
+    pct.style.color = i === top ? 'var(--accent)' : '';
+  }
+
+  document.getElementById('bar-' + top).parentElement.parentElement
+    .querySelector('.bar-label').style.color = 'var(--accent)';
+}
+
+function resetDisplay() {
+  document.getElementById('digit-display').textContent = '—';
+  document.getElementById('conf-display').textContent = '—';
+  document.getElementById('second-display').textContent = '';
+  for (let i = 0; i < 10; i++) {
+    const fill = document.getElementById('bar-' + i);
+    if (fill) { fill.style.width = '0%'; fill.classList.remove('top'); }
+    const pct = document.getElementById('pct-' + i);
+    if (pct) { pct.textContent = '0%'; pct.style.color = ''; }
+    const label = document.querySelector(`#bars .bar-row:nth-child(${i+1}) .bar-label`);
+    if (label) label.style.color = '';
+  }
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+loadWeights();
+</script>
+</body>
+</html>
