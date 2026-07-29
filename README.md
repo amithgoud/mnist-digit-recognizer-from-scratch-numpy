@@ -3,6 +3,23 @@
 > Built a fully functional 3-layer neural network using **only Python and NumPy** — no TensorFlow, no PyTorch, no Keras.
 > Every component — forward propagation, backpropagation, gradient descent, and loss computation — is implemented from first principles using matrix calculus.
 > Achieves **97.8% test accuracy** on MNIST, demonstrating that deep understanding of the math behind deep learning matters more than knowing the APIs.
+## 🏗️ Model Architecture
+
+The network consists of 3 fully connected layers built entirely from scratch using NumPy.
+
+![Architecture](images/architecture.png)
+
+| Layer | Neurons | Activation | Weight Matrix |
+|-------|---------|------------|---------------|
+| Input | 784 | — | — |
+| Hidden 1 | 128 | ReLU | W¹ (784 × 128) |
+| Hidden 2 | 64 | ReLU | W² (128 × 64) |
+| Output | 10 | Softmax | W³ (64 × 10) |
+
+The input layer takes a 28×28 MNIST image flattened into a vector of 784 pixel values normalized between 0 and 1. Two hidden layers with ReLU activation learn progressively abstract representations of digit strokes and curves. The output layer produces 10 probabilities — one per digit class — using Softmax, and the predicted digit is the class with the highest probability.
+
+Total trainable parameters: **(784×128 + 128) + (128×64 + 64) + (64×10 + 10) = 109,386**
+
 
 <br>
 
@@ -12,7 +29,7 @@
 ![Dataset](https://img.shields.io/badge/Dataset-MNIST-orange?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)
 
-**[Live Demo →](https://[YOUR_USERNAME].github.io/[REPO_NAME]/demo/index.html)** — Draw any digit in the browser and watch the network predict it in real time.
+**[Live Demo →]([demo/index.html](https://github.com/amithgoud/mnist-digit-recognizer-from-scratch-numpy/blob/main/demo/index.html))** — Draw any digit in the browser and watch the network predict it in real time.
 
 <br>
 
