@@ -29,7 +29,7 @@ Total trainable parameters: **(784×128 + 128) + (128×64 + 64) + (64×10 + 10) 
 ![Dataset](https://img.shields.io/badge/Dataset-MNIST-orange?style=flat-square)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey?style=flat-square)
 
-**[Live Demo →](https://[amithgoud].github.io/[mnist-digit-recognizer-from-scratch-numpy]/demo/index.html)** — Draw any digit in the browser and watch the network predict it in real time.
+**[Live Demo →](https://amithgoud.github.io/mnist-digit-recognizer-from-scratch-numpy/demo/index.html)** — Draw any digit in the browser and watch the network predict it in real time.
 
 <br>
 
