@@ -3,23 +3,6 @@
 > Built a fully functional 3-layer neural network using **only Python and NumPy** — no TensorFlow, no PyTorch, no Keras.
 > Every component — forward propagation, backpropagation, gradient descent, and loss computation — is implemented from first principles using matrix calculus.
 > Achieves **97.8% test accuracy** on MNIST, demonstrating that deep understanding of the math behind deep learning matters more than knowing the APIs.
-## 🏗️ Model Architecture
-
-The network consists of 3 fully connected layers built entirely from scratch using NumPy.
-
-![Architecture](images/architecture_sketch.png)
-
-| Layer | Neurons | Activation | Weight Matrix |
-|-------|---------|------------|---------------|
-| Input | 784 | — | — |
-| Hidden 1 | 128 | ReLU | W¹ (784 × 128) |
-| Hidden 2 | 64 | ReLU | W² (128 × 64) |
-| Output | 10 | Softmax | W³ (64 × 10) |
-
-The input layer takes a 28×28 MNIST image flattened into a vector of 784 pixel values normalized between 0 and 1. Two hidden layers with ReLU activation learn progressively abstract representations of digit strokes and curves. The output layer produces 10 probabilities — one per digit class — using Softmax, and the predicted digit is the class with the highest probability.
-
-Total trainable parameters: **(784×128 + 128) + (128×64 + 64) + (64×10 + 10) = 109,386**
-
 
 <br>
 
@@ -110,6 +93,7 @@ Input Layer       Hidden Layer 1    Hidden Layer 2    Output Layer
   784 neurons  →   128 neurons    →   64 neurons    →  10 neurons
   (28×28 px)       ReLU               ReLU             Softmax
 ```
+![Architecture](images/architecture_sketch.png)
 
 ### File Structure
 ```
@@ -186,8 +170,10 @@ jupyter
 ### Setup
 ```bash
 # 1. Clone the repo
-git clone https://github.com/[YOUR_USERNAME]/[REPO_NAME].git
-cd [REPO_NAME]
+git clone https://github.com/amithgoud/mnist-digit-recognizer-from-scratch-numpy
+.git
+cd mnist-digit-recognizer-from-scratch-numpy
+
 
 # 2. Install dependencies
 pip install numpy matplotlib scikit-learn jupyter
@@ -203,7 +189,7 @@ open demo/index.html      # macOS
 start demo/index.html     # Windows
 ```
 
-Or visit the hosted version: **[Live Demo →](https://[YOUR_USERNAME].github.io/[REPO_NAME]/demo/index.html)**
+Or visit the hosted version: **[Live Demo →]([https://[YOUR_USERNAME].github.io/[REPO_NAME]/demo/index.html](https://amithgoud.github.io/mnist-digit-recognizer-from-scratch-numpy/demo/index.html))**
 
 <br>
 
@@ -297,8 +283,8 @@ loss = -np.sum(Y * np.log(predictions + 1e-8)) / m
 
 ## 👤 Author
 
-**[Your Name]**
-[LinkedIn](https://linkedin.com/in/[YOUR_HANDLE]) · [GitHub](https://github.com/[YOUR_USERNAME]) · [Email](mailto:[YOUR_EMAIL])
+**AMITH GOUDA**
+[LinkedIn](https://linkedin.com/in/amith-gouda) · [GitHub](https://github.com/amithgoud) · [Email](mailto:amithgoud@gmail.com)
 
 *Currently studying ML from first principles — CS229 (Andrew Ng) + building projects from scratch.*
 
